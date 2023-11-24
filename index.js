@@ -24,7 +24,7 @@ const usersCollection = client.db("apartmentDB").collection("users");
 const agreementsCollection = client.db("apartmentDB").collection("agreements");
 const announcementCollection = client
   .db("apartmentDB")
-  .collection("announcement");
+  .collection("announcements");
 
 // const verifyToken = (req, res, next) => {
 //   if (!req?.headers?.authorization) {
@@ -102,6 +102,10 @@ async function run() {
     });
 
     // agreement related api
+    app.get("/agreements", async (req, res) => {
+      const cursor = await agreementsCollection.find().toArray();
+      res.send(cursor);
+    });
     app.get("/agreement/:email", async (req, res) => {
       const query = { email: req.params?.email };
 
@@ -111,8 +115,8 @@ async function run() {
 
     // announcement
     app.get("/announcement", async (req, res) => {
-      const result = await announcementCollection.find().toArray();
-      res.send(result);
+      const cursor = await announcementCollection.find().toArray();
+      res.send(cursor);
     });
 
     app.post("/agreements", async (req, res) => {
