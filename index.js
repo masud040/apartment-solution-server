@@ -5,7 +5,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6hil8lf.mongodb.net/?retryWrites=true&w=majority`;
 
 app.use(cors());
@@ -56,6 +56,10 @@ async function run() {
     });
 
     // Role related api
+    app.get("/users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
     app.get("/users/role/:email", async (req, res) => {
       const email = req.params?.email;
       // if (email !== req.decode.email) {
@@ -85,6 +89,10 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/user/:email", async (req, res) => {
+      console.log(req.params.email);
+    });
+
     // apartments related api
     app.get("/apartments", async (req, res) => {
       const page = Number(req.query.page);
@@ -103,13 +111,47 @@ async function run() {
 
     // agreement related api
     app.get("/agreements", async (req, res) => {
-      const cursor = await agreementsCollection.find().toArray();
+      const query = { status: req.query?.status };
+      const cursor = await agreementsCollection.find(query).toArray();
       res.send(cursor);
     });
+    app.patch("/agreements/:email", async (req, res) => {
+      const email = req.params?.email;
+      const update = req.body;
+      const filter = { email: email };
+      const options = {};
+      const updateDoc = {
+        $set: {
+          date: update.date,
+          status: update.status,
+        },
+      };
+      const updateRole = {
+        $set: {
+          role: update.role,
+        },
+      };
+      const result = await agreementsCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      const cursor = await usersCollection.updateOne(filter, updateRole, {
+        upsert: true,
+      });
+      console.log(cursor);
+      res.send({ cursor, result });
+    });
+
     app.get("/agreement/:email", async (req, res) => {
       const query = { email: req.params?.email };
 
       const result = await agreementsCollection.findOne(query);
+      res.send(result);
+    });
+    app.delete("/agreements/:id", async (req, res) => {
+      const query = { _id: new ObjectId(req.params.id) };
+      const result = await agreementsCollection.deleteOne(query);
       res.send(result);
     });
 
