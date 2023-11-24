@@ -22,6 +22,9 @@ const client = new MongoClient(uri, {
 const apartmentCollection = client.db("apartmentDB").collection("apartments");
 const usersCollection = client.db("apartmentDB").collection("users");
 const agreementsCollection = client.db("apartmentDB").collection("agreements");
+const announcementCollection = client
+  .db("apartmentDB")
+  .collection("announcement");
 
 // const verifyToken = (req, res, next) => {
 //   if (!req?.headers?.authorization) {
@@ -102,7 +105,13 @@ async function run() {
     app.get("/agreement/:email", async (req, res) => {
       const query = { email: req.params?.email };
 
-      const result = await agreementsCollection.find(query).toArray();
+      const result = await agreementsCollection.findOne(query);
+      res.send(result);
+    });
+
+    // announcement
+    app.get("/announcement", async (req, res) => {
+      const result = await announcementCollection.find().toArray();
       res.send(result);
     });
 
