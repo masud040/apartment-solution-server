@@ -27,6 +27,7 @@ const announcementCollection = client
   .db("apartmentDB")
   .collection("announcements");
 const paymentCollection = client.db("apartmentDB").collection("payments");
+const couponCollection = client.db("apartmentDB").collection("coupons");
 
 const verifyToken = (req, res, next) => {
   if (!req?.headers?.authorization) {
@@ -291,17 +292,12 @@ async function run() {
       }
     );
 
-    app.all("*", (req, res, next) => {
-      const error = new Error(`the requested url is invalid: ${req.url}`);
-      error.status = 404;
-      next(error);
+    // coupons related
+    app.get("/coupons", async (req, res) => {
+      const result = await couponCollection.find().toArray();
+      res.send(result);
     });
 
-    app.use((err, req, res, next) => {
-      res.status(err.status || 500).json({
-        message: err.message,
-      });
-    });
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
@@ -312,7 +308,7 @@ async function run() {
 }
 run().catch(console.dir);
 
-app.get("/health", (req, res) => {
+app.get("/", (req, res) => {
   res.send("Bistro Boss Restaurant Server is running");
 });
 
