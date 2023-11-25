@@ -305,6 +305,11 @@ async function run() {
       }
       res.send({ discount: isExist.discount_percentage });
     });
+    app.post("/coupons", verifyToken, verifyAdmin, async (req, res) => {
+      const couponInfo = req.body;
+      const result = await couponCollection.insertOne(couponInfo);
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
