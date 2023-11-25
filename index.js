@@ -184,7 +184,7 @@ async function run() {
     app.get(
       "/agreements/:email",
       verifyToken,
-      verifyMember,
+
       async (req, res) => {
         const query = { email: req.params?.email };
 
@@ -250,11 +250,37 @@ async function run() {
       }
     );
     // store payment data
-    app.post("/payments", async (req, res) => {
-      const paymentInfo = req.body;
-      const result = await paymentCollection.insertOne(paymentInfo);
-      result.send(result);
+    app.get("/payments", verifyToken, verifyMember, async (req, res) => {
+      const { email, month } = req.query;
+      let query = {};
+      if (email) {
+        query.email = email;
+      }
+      if (email && month) {
+        (query.email = email), (query.month_of_rent = month);
+      }
+
+      const result = await paymentCollection.find(query).toArray();
+      res.send(result);
     });
+    app.post("/payments", verifyToken, verifyMember, async (req, res) => {
+      const paymentInfo = req.body;
+
+      const result = await paymentCollection.insertOne(paymentInfo);
+      res.send(result);
+    });
+    app.get(
+      "/count-users-member",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        const users = await usersCollection.estimatedDocumentCount();
+        const members = await usersCollection.countDocuments({
+          role: "member",
+        });
+        res.send({ users: users, members: members });
+      }
+    );
 
     app.all("*", (req, res, next) => {
       const error = new Error(`the requested url is invalid: ${req.url}`);
