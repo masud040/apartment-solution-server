@@ -297,6 +297,14 @@ async function run() {
       const result = await couponCollection.find().toArray();
       res.send(result);
     });
+    app.get("/coupon", verifyToken, async (req, res) => {
+      const coupon = req.query?.coupon;
+      const isExist = await couponCollection.findOne({ coupon_code: coupon });
+      if (!isExist) {
+        return res.send({ message: "Coupon are not valid" });
+      }
+      res.send({ discount: isExist.discount_percentage });
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
