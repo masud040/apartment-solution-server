@@ -223,6 +223,11 @@ async function run() {
       const cursor = await announcementCollection.find().toArray();
       res.send(cursor);
     });
+    app.post("/announcement", verifyToken, verifyAdmin, async (req, res) => {
+      const announcement = req.body;
+      const result = await announcementCollection.insertOne(announcement);
+      res.send(result);
+    });
 
     app.post("/agreements", verifyToken, async (req, res) => {
       const agreement = req?.body;
@@ -278,7 +283,11 @@ async function run() {
         const members = await usersCollection.countDocuments({
           role: "member",
         });
-        res.send({ users: users, members: members });
+        const bookedRooms = await agreementsCollection.countDocuments({
+          status: "checked",
+          checked: true,
+        });
+        res.send({ users: users, members: members, bookedRooms: bookedRooms });
       }
     );
 
