@@ -26,6 +26,7 @@ const agreementsCollection = client.db("apartmentDB").collection("agreements");
 const announcementCollection = client
   .db("apartmentDB")
   .collection("announcements");
+const paymentCollection = client.db("apartmentDB").collection("payments");
 
 const verifyToken = (req, res, next) => {
   if (!req?.headers?.authorization) {
@@ -248,6 +249,12 @@ async function run() {
         });
       }
     );
+    // store payment data
+    app.post("/payments", async (req, res) => {
+      const paymentInfo = req.body;
+      const result = await paymentCollection.insertOne(paymentInfo);
+      result.send(result);
+    });
 
     app.all("*", (req, res, next) => {
       const error = new Error(`the requested url is invalid: ${req.url}`);
